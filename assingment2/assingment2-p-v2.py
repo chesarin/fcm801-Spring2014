@@ -21,7 +21,22 @@ class FileProcessor(object):
     def print_data(self):
         for i in self.data:
             print i,
-            
+class ShadowCombiner(object):
+    def __init__(self,passwdEntries,shadowEntries):
+        self.passwdEntries = passwdEntries
+        self.shadowEntries = shadowEntries
+        self.combinedEntries = []
+    def _combine(self):
+        for shadow in self.shadowEntries:
+            for passentry in self.passwdEntries:
+                if passentry.get_username() == shadow.get_username():
+                    combination = shadow,passentry
+                    self.combinedEntries.append(combination)
+                    break
+    def get_entries(self):
+        self._combine()
+        return self.combinedEntries
+        
 class ShadowFileProcessor(object):
     def __init__(self,filename):
         self.filename = filename
@@ -57,7 +72,16 @@ class ShadowEntry(object):
         return self.salt
     def __str__(self):
         return 'username:{} hashed password:{} salt:{}'.format(self.username,self.encpassword,self.get_salt())
-        
+class PasswdEntry(object):
+    def __init__(self,username,fullname):
+        self.username = username
+        self.fullname = fullname
+    def get_username(self):
+        return self.username
+    def get_fullname(self):
+        return self.fullname
+    def __str__(self):
+        return '{} {}'.format(self.username,self.fullname)
 class PasswordCracker(object):
     def __init__(self,shadowQueue,commonPasswords,nameEntries):
         self.shadowQueue = shadowQueue
@@ -151,10 +175,11 @@ class PasswdFileProcessor(PasswordFileProcessor):
         fp.extract_data()
         data = fp.get_data()
         for entry in data:
-            pw = entry.split(':')[4]
-            if pw:
-                self.passwords.append(pw)
-            # if not re.match(r'^#',entry):
+            temp = re.split(':',entry)
+            username = temp[0]
+            fullname = temp[4]
+            entry = PasswdEntry(username,fullname)
+            self.passwords.append(entry)
 def mpCrack(shadowEntries,commonPasswords,nameEntries):
     starttime = time.clock()
     processes = []
@@ -186,8 +211,12 @@ def get_dictionary_words():
     passwordfile = 'passwords.txt'
     passfp = PasswordFileProcessor(passwordfile)
     passfp.process_file()
-    commonPasswords = passfp.get_data()
-    return commonPasswords
+    passfp.print_data()
+    return passfp.get_data()
+def combine_entries(nameEntries,shadowEntries):
+    combination = ShadowCombiner(nameEntries,shadowEntries)
+    return combination.get_entries()
+
 def get_shadow_entries():
     shadowfile = 'shadow.txt'
     shadowfp = ShadowFileProcessor(shadowfile)
@@ -195,9 +224,11 @@ def get_shadow_entries():
     shadowfp.create_shadow_entry()
     shadowEntries = shadowfp.get_shadow_entries()
     return shadowEntries
+    
 if __name__ == '__main__':
     logging.debug('starting main')
     nameEntries = get_name_entries()
     shadowEntries = get_shadow_entries()
+    combinedEntries = combine_entries(nameEntries,shadowEntries)
     commonPasswords = get_dictionary_words()
-    mpCrack(shadowEntries,commonPasswords,nameEntries)
+    # mpCrack(shadowEntries,commonPasswords,nameEntries)
