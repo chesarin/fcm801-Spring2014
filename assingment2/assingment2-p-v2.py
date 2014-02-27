@@ -30,7 +30,11 @@ class ShadowCombiner(object):
         for shadow in self.shadowEntries:
             for passentry in self.passwdEntries:
                 if passentry.get_username() == shadow.get_username():
-                    combination = shadow,passentry
+                    username = passentry.get_username()
+                    fullname = passentry.get_fullname()
+                    salt = shadow.get_salt()
+                    password = shadow.get_password()
+                    combination = CombinedEntry(username,fullname,salt,password)
                     self.combinedEntries.append(combination)
                     break
     def get_entries(self):
@@ -82,26 +86,36 @@ class PasswdEntry(object):
         return self.fullname
     def __str__(self):
         return '{} {}'.format(self.username,self.fullname)
+class CombinedEntry(PasswdEntry):
+    def __init__(self,username,fullname,salt,shadowpass):
+        PasswdEntry.__init__(self,username,fullname)
+        self.salt = salt
+        self.shadowpass = shadowpass
+    def get_salt(self):
+        return self.salt
+    def get_shadowpass(self):
+        return self.shadowpass
+    def __str__(self):
+        return '{} {} {} {}'.format(self.username,self.fullname,self.salt,self.shadowpass)
 class PasswordCracker(object):
-    def __init__(self,shadowQueue,commonPasswords,nameEntries):
+    def __init__(self,shadowQueue,commonPasswords):
         self.shadowQueue = shadowQueue
         self.commonPasswords = commonPasswords
-        self.nameEntries = nameEntries
     def run(self):
         while not self.shadowQueue.empty():
             shadowEntry = self.shadowQueue.get()
             shadowTuple = self._getPersonalData(shadowEntry)
             if self._stage1(shadowTuple):
                 continue
-            elif self._stage2(shadowTuple):
-                continue
-            elif self._stage3(shadowTuple):
-                continue
+            # elif self._stage2(shadowTuple):
+            #     continue
+            # elif self._stage3(shadowTuple):
+            #     continue
                 
         logging.debug('Dying')
     def _stage1(self,shadowTuple):
         status = False
-        username,salt,shadowpass = shadowTuple
+        username,fullname,salt,shadowpass = shadowTuple
         logging.debug('In Stage 1 username %s',username)
         for p in self.commonPasswords:
             ptemp = crypt.crypt(p,salt)
@@ -139,10 +153,11 @@ class PasswordCracker(object):
         for key,value in self.success.iteritems():
             print 'key:{} password:{} hashed-password:{}'.format(key,value[0],value[1])
     def _getPersonalData(self,shadowEntry):
-        name = shadowEntry.get_username()
+        username = shadowEntry.get_username()
         salt = shadowEntry.get_salt()
-        shadowpass = shadowEntry.get_password()
-        return name,salt,shadowpass
+        shadowpass = shadowEntry.get_shadowpass()
+        fullname = shadowEntry.get_fullname()
+        return username,fullname,salt,shadowpass
             
 class PasswordEncrypt(object):
     def __init__(self,passwd,salt):
@@ -180,19 +195,19 @@ class PasswdFileProcessor(PasswordFileProcessor):
             fullname = temp[4]
             entry = PasswdEntry(username,fullname)
             self.passwords.append(entry)
-def mpCrack(shadowEntries,commonPasswords,nameEntries):
+def mpCrack(combinedEntries,commonPasswords):
     starttime = time.clock()
     processes = []
     cpus = os.sysconf("SC_NPROCESSORS_ONLN")
     shadowQueue = Queue(20)
     logging.debug('filling shadowQueue number of cpus %s',str(cpus))
-    logging.debug('size of shadowEntries %s',len(shadowEntries))
-    for entry in shadowEntries:
+    logging.debug('size of shadowEntries %s',len(combinedEntries))
+    for entry in combinedEntries:
         shadowQueue.put(entry)
     logging.debug('before getting into loop to create threads')
     for pname in range(cpus):
         logging.debug('creating process %s',str(pname))
-        c = PasswordCracker(shadowQueue,commonPasswords,nameEntries)
+        c = PasswordCracker(shadowQueue,commonPasswords)
         process = Process(target=c.run,args=())
         process.start()
         processes.append(process)
@@ -211,7 +226,7 @@ def get_dictionary_words():
     passwordfile = 'passwords.txt'
     passfp = PasswordFileProcessor(passwordfile)
     passfp.process_file()
-    passfp.print_data()
+    # passfp.print_data()
     return passfp.get_data()
 def combine_entries(nameEntries,shadowEntries):
     combination = ShadowCombiner(nameEntries,shadowEntries)
@@ -231,4 +246,4 @@ if __name__ == '__main__':
     shadowEntries = get_shadow_entries()
     combinedEntries = combine_entries(nameEntries,shadowEntries)
     commonPasswords = get_dictionary_words()
-    # mpCrack(shadowEntries,commonPasswords,nameEntries)
+    mpCrack(combinedEntries,commonPasswords)
