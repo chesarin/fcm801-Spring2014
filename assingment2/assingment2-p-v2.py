@@ -8,6 +8,24 @@ from multiprocessing import Process,Queue
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(processName)-10s) %(message)s')
 
+class UsernameCombinations(object):
+    def __init__(self,username,fullname):
+        self.username = username
+        self.fullname = fullname
+        self.combinations = []
+    def _combine(self):
+        self.combinations.append(self.username)
+        self.combinations.append(self.fullname)
+        initials = self._initials(self.fullname)
+        self.combinations.append(initials)
+    def _initials(self,fullname):
+        name = fullname.lower()
+        splitname = re.split(' ',name)
+        initials = splitname[0][0] + splitname[1][0]
+        return initials
+    def get_combinations(self):
+        self._combine()
+        return self.combinations
 class FileProcessor(object):
     def __init__(self,fname):
         self.fname = fname
@@ -107,8 +125,8 @@ class PasswordCracker(object):
             shadowTuple = self._getPersonalData(shadowEntry)
             if self._stage1(shadowTuple):
                 continue
-            # elif self._stage2(shadowTuple):
-            #     continue
+            elif self._stage2(shadowTuple):
+                continue
             # elif self._stage3(shadowTuple):
             #     continue
                 
@@ -116,7 +134,7 @@ class PasswordCracker(object):
     def _stage1(self,shadowTuple):
         status = False
         username,fullname,salt,shadowpass = shadowTuple
-        logging.debug('In Stage 1 username %s',username)
+        logging.debug('In Stage 1 username %s and fullname %s',username,fullname)
         for p in self.commonPasswords:
             ptemp = crypt.crypt(p,salt)
             if ptemp == shadowpass:
@@ -126,12 +144,17 @@ class PasswordCracker(object):
         return status
     def _stage2(self,shadowTuple):
         status = False
-        username,salt,shadowpass = shadowTuple
-        logging.debug('In Stage 2 username %s',username)
-        ptemp = crypt.crypt(username,salt)
-        if ptemp == shadowpass:
-            logging.debug ('SUCCESS Stage2:Found password for %s and that is %s',username,username)
-            status = True
+        username,fullname,salt,shadowpass = shadowTuple
+        logging.debug('In Stage 2 username %s and fullname %s',username,fullname)
+        credentialCombination = UsernameCombinations(username,fullname)
+        combinations = credentialCombination.get_combinations()
+        for p in combinations:
+            # logging.debug('combination is %s',p)
+            ptemp = crypt.crypt(p,salt)
+            if ptemp == shadowpass:
+                logging.debug ('SUCCESS Stage2:Found password for %s and that is %s',username,p)
+                status = True
+                break
         return status
     def _stage3(self,shadowTuple):
         status = False
