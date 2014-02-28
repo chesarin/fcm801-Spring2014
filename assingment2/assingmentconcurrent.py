@@ -17,13 +17,18 @@ class UsernameCombinations(object):
     def _combine(self):
         self.combinations.append(self.username)
         self.combinations.append(self.fullname)
-        initials = self._initials(self.fullname)
-        self.combinations.append(initials)
-    def _initials(self,fullname):
-        name = fullname.lower()
+        self._initials()
+        self._title()
+    def _title(self):
+        word = self.username.title()
+        self.combinations.append(word)
+    def _initials(self):
+        name = self.fullname.lower()
         splitname = re.split(' ',name)
         initials = splitname[0][0] + splitname[1][0]
-        return initials
+        initials2 = initials.upper()
+        self.combinations.append(initials)
+        self.combinations.append(initials2)
     def get_combinations(self):
         self._combine()
         return self.combinations
