@@ -33,11 +33,15 @@ class WordCombination(object):
     def _combine(self):
         self._upper()
         self._lower()
+        self._title()
     def _upper(self):
         word = self.word.upper()
         self.combinations.append(word)
     def _lower(self):
         word = self.word.lower()
+        self.combinations.append(word)
+    def _title(self):
+        word =self.word.title()
         self.combinations.append(word)
     def get_combinations(self):
         self._combine()
