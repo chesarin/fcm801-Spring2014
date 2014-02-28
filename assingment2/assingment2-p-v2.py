@@ -119,17 +119,15 @@ class PasswordCracker(object):
     def __init__(self,shadowQueue,commonPasswords):
         self.shadowQueue = shadowQueue
         self.commonPasswords = commonPasswords
+        self.stagesList = [self._stage1,self._stage2]
     def run(self):
         while not self.shadowQueue.empty():
             shadowEntry = self.shadowQueue.get()
             shadowTuple = self._getPersonalData(shadowEntry)
-            if self._stage1(shadowTuple):
-                continue
-            elif self._stage2(shadowTuple):
-                continue
-            # elif self._stage3(shadowTuple):
-            #     continue
-                
+            for stage in self.stagesList:
+                if stage(shadowTuple):
+                    break
+            continue
         logging.debug('Dying')
     def _stage1(self,shadowTuple):
         status = False
