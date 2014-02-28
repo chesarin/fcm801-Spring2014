@@ -5,6 +5,7 @@ import time
 import logging
 import os
 from multiprocessing import Process,Queue
+from string import maketrans
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(processName)-10s) %(message)s')
 
@@ -34,6 +35,7 @@ class WordCombination(object):
         self._upper()
         self._lower()
         self._title()
+        self._numletters()
     def _upper(self):
         word = self.word.upper()
         self.combinations.append(word)
@@ -43,6 +45,20 @@ class WordCombination(object):
     def _title(self):
         word =self.word.title()
         self.combinations.append(word)
+    def _numletters(self):
+        original = 'aeio'
+        updated = '4310'
+        transtable = maketrans(original,updated)
+        word = self.word.translate(transtable)
+        vowels = 'aeiou'
+        numbers = '12345'
+        transtable2 = maketrans(vowels,numbers)
+        word2 = self.word.translate(transtable2)
+        transtable3 = maketrans(numbers,vowels)
+        word3 = self.word.translate(transtable3)
+        self.combinations.append(word)
+        self.combinations.append(word2)
+        self.combinations.append(word3)
     def get_combinations(self):
         self._combine()
         return self.combinations
