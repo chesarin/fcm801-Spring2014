@@ -27,8 +27,12 @@ class UsernameCombinations(object):
         splitname = re.split(' ',name)
         initials = splitname[0][0] + splitname[1][0]
         initials2 = initials.upper()
+        concname = splitname[0]+splitname[1]
+        concname2 = splitname[0].title()+splitname[1].title()
         self.combinations.append(initials)
         self.combinations.append(initials2)
+        self.combinations.append(concname)
+        self.combinations.append(concname2)
     def get_combinations(self):
         self._combine()
         return self.combinations
