@@ -26,6 +26,22 @@ class UsernameCombinations(object):
     def get_combinations(self):
         self._combine()
         return self.combinations
+class WordCombination(object):
+    def __init__(self,word):
+        self.word = word
+        self.combinations = []
+    def _combine(self):
+        self._upper()
+        self._lower()
+    def _upper(self):
+        word = self.word.upper()
+        self.combinations.append(word)
+    def _lower(self):
+        word = self.word.lower()
+        self.combinations.append(word)
+    def get_combinations(self):
+        self._combine()
+        return self.combinations
 class FileProcessor(object):
     def __init__(self,fname):
         self.fname = fname
@@ -119,6 +135,7 @@ class PasswordCracker(object):
     def __init__(self,shadowQueue,commonPasswords):
         self.shadowQueue = shadowQueue
         self.commonPasswords = commonPasswords
+        # self.stagesList = [self._stage1,self._stage2,self._stage3]
         self.stagesList = [self._stage1,self._stage2]
     def run(self):
         while not self.shadowQueue.empty():
@@ -132,14 +149,24 @@ class PasswordCracker(object):
     def _stage1(self,shadowTuple):
         status = False
         username,fullname,salt,shadowpass = shadowTuple
-        logging.debug('In Stage 1 username %s and fullname %s',username,fullname)
+        logging.debug('In Stage 1 username %s',username)
         for p in self.commonPasswords:
-            ptemp = crypt.crypt(p,salt)
-            if ptemp == shadowpass:
-                logging.debug ('SUCCESS Stage1:Found password for %s and that is %s',username,p)
-                status = True
+            # logging.debug('stage 3: base word %s',p)
+            wordCombinator = WordCombination(p)
+            wordList = wordCombinator.get_combinations()
+            # logging.debug('size of combination list is %s',len(wordList))
+            for word in wordList:
+                # logging.debug('stage 3: combination word %s',word)
+                ptemp = crypt.crypt(word,salt)
+                if ptemp == shadowpass:
+                    logging.debug ('SUCCESS Stage1:Found password for %s and that is %s',username,p)
+                    status = True
+                    break
+            if status:
                 break
+        logging.debug('exiting _stage1')
         return status
+        
     def _stage2(self,shadowTuple):
         status = False
         username,fullname,salt,shadowpass = shadowTuple
@@ -151,20 +178,6 @@ class PasswordCracker(object):
             ptemp = crypt.crypt(p,salt)
             if ptemp == shadowpass:
                 logging.debug ('SUCCESS Stage2:Found password for %s and that is %s',username,p)
-                status = True
-                break
-        return status
-    def _stage3(self,shadowTuple):
-        status = False
-        username,salt,shadowpass = shadowTuple
-        logging.debug('In Stage 3 username %s',username)
-        for p in self.nameEntries:
-            temp = p.lower().split(' ')
-            w = temp[0][0]+temp[1]
-            # logging.debug('names entry is %s',w)
-            ptemp = crypt.crypt(w,salt)
-            if ptemp == shadowpass:
-                logging.debug ('SUCCESS Stage1:Found password for %s and that is %s',username,p)
                 status = True
                 break
         return status
