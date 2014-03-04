@@ -56,8 +56,8 @@ class WordCombination(object):
         word =self.word.title()
         self.combinations.append(word)
     def _symbols(self):
-        original = 'aeo'
-        updated = '@30'
+        original = 'aeos'
+        updated = '@30$'
         transtable = maketrans(original,updated)
         word = self.word.translate(transtable)
         self.combinations.append(word)
