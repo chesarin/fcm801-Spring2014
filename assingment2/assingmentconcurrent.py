@@ -45,6 +45,7 @@ class WordCombination(object):
         self._lower()
         self._title()
         self._numletters()
+        self._symbols()
     def _upper(self):
         word = self.word.upper()
         self.combinations.append(word)
@@ -53,6 +54,12 @@ class WordCombination(object):
         self.combinations.append(word)
     def _title(self):
         word =self.word.title()
+        self.combinations.append(word)
+    def _symbols(self):
+        original = 'aeo'
+        updated = '@30'
+        transtable = maketrans(original,updated)
+        word = self.word.translate(transtable)
         self.combinations.append(word)
     def _numletters(self):
         original = 'aeio'
