@@ -195,7 +195,7 @@ class PasswordCracker(object):
                 # logging.debug('stage 3: combination word %s',word)
                 ptemp = crypt.crypt(word,salt)
                 if ptemp == shadowpass:
-                    logging.debug ('SUCCESS Stage1:Found password for %s and that is %s',username,p)
+                    logging.debug ('SUCCESS Stage1:Found password for %s and that is %s',username,word)
                     status = True
                     break
             if status:
