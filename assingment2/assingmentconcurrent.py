@@ -50,17 +50,20 @@ class WordCombination(object):
         self._upper()
         self._lower()
         self._title()
+        self._reverse()
         self._numletters()
         self._symbols()
     def _upper(self):
         word = self.word.upper()
         self.combinations.append(word)
-            
     def _lower(self):
         word = self.word.lower()
         self.combinations.append(word)
     def _title(self):
         word =self.word.title()
+        self.combinations.append(word)
+    def _reverse(self):
+        word = self.word[::-1]
         self.combinations.append(word)
     def _symbols(self):
         original = 'aeosl'
