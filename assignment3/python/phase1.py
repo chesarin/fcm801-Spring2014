@@ -53,9 +53,10 @@ largekey = key * 2
 iv =  'c782dc4c098c66cbd9cd27d825682c81'
 input_file = raw_input('Enter your inputfile:>')
 
-ciphers = ['aes_128_cbc', 'bf_cbc', 'des_ede3_cbc', 'rc4']
+ciphers = [ 'bf_cbc', 'des_cbc', 'des_ede3_cbc', 'rc4', 'aes_128_cbc']
 ciphers_large_keys = ['aes_256_cbc']
 for cipher in ciphers:
+    print 'processing cipher : {}'.format(cipher)
     encrypted_file = input_file + '-' + cipher
     print 'length of the key is:{} and length of iv is:{}'.format(len(key)*4,len(iv)*4)
     print 'encrypting filename {} its result will be placed in {}'.format(input_file, encrypted_file)
@@ -64,6 +65,7 @@ for cipher in ciphers:
     decrypt_file(cipher, key, iv, encrypted_file, decrypted_file_name )
     
 for cipher in ciphers_large_keys:
+    print 'processing cipher : {}'.format(cipher)
     encrypted_file = input_file + '-' + cipher
     print 'length of the key is:{} and length of iv is:{}'.format(len(largekey)*4,len(iv)*4)
     print 'encrypting filename {} its result will be placed in {}'.format(input_file, encrypted_file)
