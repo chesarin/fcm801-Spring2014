@@ -30,10 +30,10 @@ def calculate_seed(n):
     initial_time,final_time = calculate_seconds()
     gmp_initial_time = _g.mpz(initial_time)
     gmp_final_time = _g.mpz(final_time)
-    gmp_initial_pid = _g.mpz(1800)
-    gmp_final_pid = _g.mpz(2000)
-    gmp_initial_ppid = _g.mpz(1800)
-    gmp_final_ppid = _g.mpz(2000)
+    gmp_initial_pid = _g.mpz(0)
+    gmp_final_pid = _g.mpz(32768)
+    gmp_initial_ppid = _g.mpz(0)
+    gmp_final_ppid = _g.mpz(32768)
     
     while gmp_initial_time <= gmp_final_time:
         while gmp_initial_pid <= gmp_final_pid:
@@ -53,12 +53,12 @@ def calculate_seed(n):
         
 def calculate_division(test, n):
     # print n
-    print 'number of digits in test is {} in base 2'.format(_g.numdigits(test,2))
+    # print 'number of digits in test is {} in base 2'.format(_g.numdigits(test,2))
     # print 'number of digits in n is {} in base 2'.format(_g.numdigits(n,2))
     prime = _g.next_prime(test)
     # print prime
     if _g.is_prime(prime):
-        print 'I got a prime {}'.format(prime)
+        # print 'I got a prime {}'.format(prime)
         if n % prime == 0:
             print n
             print 'success'
